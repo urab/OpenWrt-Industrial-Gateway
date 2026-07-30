@@ -947,6 +947,9 @@ TARGET_DEVICES += nexx_wt3020-8m
 define Device/nexx_wt3020-16m
   SOC := mt7620n
   IMAGE_SIZE := 16064k
+  IMAGES += factory.bin
+  IMAGE/factory.bin := $$(sysupgrade_bin) | check-size | \
+	poray-header -B WT3020 -F 16M
   DEVICE_VENDOR := Nexx
   DEVICE_MODEL := WT3020
   DEVICE_VARIANT := 16M
