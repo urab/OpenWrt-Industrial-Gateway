@@ -1,0 +1,35 @@
+From: Yuri <urab@users.noreply.github.com>
+Subject: [PATCH] mkporayfw: add Nexx WT3020 16M flash layout
+
+Add the 16 MiB layout used by WT3020 boards upgraded with a 16 MiB
+SPI flash chip. This allows poray-header -B WT3020 -F 16M to generate
+the factory image.
+
+---
+ src/mkporayfw.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+--- a/src/mkporayfw.c
++++ b/src/mkporayfw.c
+@@ -132,6 +132,9 @@ static struct flash_layout layouts[] = {
+ 		.id		= "8M",
+ 		.fw_max_len	= 0x7c0000,
+ 	}, {
++		.id		= "16M",
++		.fw_max_len	= 0xfc0000,
++	}, {
+ 		/* terminating entry */
+ 	}
+ };
+@@ -228,6 +231,11 @@ static struct board_info boards[] = {
+ 		.layout_id	= "8M",
+ 		.key		= KEY_NEXX_2,
+ 	}, {
++		.id		= "WT3020",
++		.hw_id		= HWID_NEXX_WT3020,
++		.layout_id	= "16M",
++		.key		= KEY_NEXX_2,
++	}, {
+ 		/* terminating entry */
+ 	}
+ };
