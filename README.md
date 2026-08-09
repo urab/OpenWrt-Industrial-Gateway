@@ -1,108 +1,78 @@
-![OpenWrt logo](include/logo.png)
+# OpenWrt Industrial Gateway — Nexx WT3020 16M
 
-OpenWrt Project is a Linux operating system targeting embedded devices. Instead
-of trying to create a single, static firmware, OpenWrt provides a fully
-writable filesystem with package management. This frees you from the
-application selection and configuration provided by the vendor and allows you
-to customize the device through the use of packages to suit any application.
-For developers, OpenWrt is the framework to build an application without having
-to build a complete firmware around it; for users this means the ability for
-full customization, to use the device in ways never envisioned.
+This branch contains work to run OpenWrt on a **Nexx WT3020 upgraded to 16 MB SPI flash**, with the goal of using the device as a small industrial Ethernet/Wi-Fi/serial gateway.
 
-Sunshine!
+## Tested hardware
 
-## Download
+- Nexx WT3020 / MT7620N
+- 16 MB SPI flash modification
+- 64 MB RAM
+- Ethernet LAN/WAN
+- 2.4 GHz Wi-Fi
+- Breed bootloader (already installed on the test unit)
+- USB-to-serial adapter testing is the next stage
 
-Built firmware images are available for many architectures and come with a
-package selection to be used as WiFi home router. To quickly find a factory
-image usable to migrate from a vendor stock firmware to OpenWrt, try the
-*Firmware Selector*.
+## Current status
 
-* [OpenWrt Firmware Selector](https://firmware-selector.openwrt.org/)
+The custom OpenWrt image boots successfully and LuCI is working. LAN is operational and the MT7620 Wi-Fi radio has been tested with a WPA2 client connection.
 
-If your device is supported, please follow the **Info** link to see install
-instructions or consult the support resources listed below.
+The working build produces:
 
-## 
+- `openwrt-ramips-mt7620-nexx_wt3020-16m-initramfs-kernel.bin`
+- `openwrt-ramips-mt7620-nexx_wt3020-16m-squashfs-factory.bin`
+- `openwrt-ramips-mt7620-nexx_wt3020-16m-squashfs-sysupgrade.bin`
 
-An advanced user may require additional or specific package. (Toolchain, SDK, ...) For everything else than simple firmware download, try the wiki download page:
+GitHub Actions builds these images from this branch.
 
-* [OpenWrt Wiki Download](https://openwrt.org/downloads)
+## Breed installation / recovery notes
 
-## Development
+**Important:** the test router already had the **Breed bootloader** installed before this OpenWrt build was tested. The original method used to install Breed is no longer known. It may have involved an external SPI flash programmer, but this is not confirmed.
 
-To build your own firmware you need a GNU/Linux, BSD or MacOSX system (case
-sensitive filesystem required). Cygwin is unsupported because of the lack of a
-case sensitive file system.
+Do **not** overwrite the bootloader unless you have a verified backup and a reliable hardware recovery method.
 
-### Requirements
+On the tested router, Breed Web was available at `192.168.1.1` and was used to install/recover the OpenWrt firmware.
 
-You need the following tools to compile OpenWrt, the package names vary between
-distributions. A complete list with distribution specific packages is found in
-the [Build System Setup](https://openwrt.org/docs/guide-developer/build-system/install-buildsystem)
-documentation.
+For this Breed installation, the OpenWrt image that was accepted as firmware was:
+
+`openwrt-ramips-mt7620-nexx_wt3020-16m-squashfs-sysupgrade.bin`
+
+The generated `factory.bin` contains a Nexx/Poray factory wrapper and this particular Breed version did not recognize it as a firmware image.
+
+## Wi-Fi Factory / EEPROM recovery
+
+During testing the MTD `factory` partition was found erased (`FF FF FF ...`). The driver then failed with:
 
 ```
-binutils bzip2 diff find flex gawk gcc-6+ getopt grep install libc-dev libz-dev
-make4.1+ perl python3.6+ rsync subversion unzip which
+rt2800_init_eeprom: Error - Invalid RF chipset 0xffff detected
 ```
 
-### Quickstart
+The router therefore had no usable Wi-Fi radio even though the correct rt2800/rt2x00 drivers were present.
 
-1. Run `./scripts/feeds update -a` to obtain all the latest package definitions
-   defined in feeds.conf / feeds.conf.default
+The original 64 KiB `mtdblock2.bin` backup was restored using **Breed Web → EEPROM**. After reboot, the MT7620 radio was detected correctly and Wi-Fi operated normally.
 
-2. Run `./scripts/feeds install -a` to install symlinks for all obtained
-   packages into package/feeds/
+### Warning about Factory/EEPROM images
 
-3. Run `make menuconfig` to select your preferred configuration for the
-   toolchain, target system & firmware packages.
+The Factory/EEPROM partition can contain device-specific calibration and MAC-address data. **Always back up the original Factory/EEPROM partition before modifying it.** Do not assume an EEPROM dump from another router is universally interchangeable.
 
-4. Run `make` to build your firmware. This will download all sources, build the
-   cross-compile toolchain and then cross-compile the GNU/Linux kernel & all chosen
-   applications for your target system.
+A recovery EEPROM image should only be published after its device-specific data has been reviewed.
 
-### Related Repositories
+## Build
 
-The main repository uses multiple sub-repositories to manage packages of
-different categories. All packages are installed via the OpenWrt package
-manager called `opkg`. If you're looking to develop the web interface or port
-packages to OpenWrt, please find the fitting repository below.
+The WT3020 16M firmware is built automatically by the GitHub Actions workflow in `.github/workflows/build-wt3020-16m.yml`.
 
-* [LuCI Web Interface](https://github.com/openwrt/luci): Modern and modular
-  interface to control the device via a web browser.
+Manual OpenWrt build basics:
 
-* [OpenWrt Packages](https://github.com/openwrt/packages): Community repository
-  of ported packages.
+```
+./scripts/feeds update -a
+./scripts/feeds install -a
+make defconfig
+make -j$(nproc)
+```
 
-* [OpenWrt Routing](https://github.com/openwrt/routing): Packages specifically
-  focused on (mesh) routing.
+## Next stage — industrial serial gateway
 
-* [OpenWrt Video](https://github.com/openwrt/video): Packages specifically
-  focused on display servers and clients (Xorg and Wayland).
-
-## Support Information
-
-For a list of supported devices see the [OpenWrt Hardware Database](https://openwrt.org/supported_devices)
-
-### Documentation
-
-* [Quick Start Guide](https://openwrt.org/docs/guide-quick-start/start)
-* [User Guide](https://openwrt.org/docs/guide-user/start)
-* [Developer Documentation](https://openwrt.org/docs/guide-developer/start)
-* [Technical Reference](https://openwrt.org/docs/techref/start)
-
-### Support Community
-
-* [Forum](https://forum.openwrt.org): For usage, projects, discussions and hardware advise.
-* [Support Chat](https://webchat.oftc.net/#openwrt): Channel `#openwrt` on **oftc.net**.
-
-### Developer Community
-
-* [Bug Reports](https://bugs.openwrt.org): Report bugs in OpenWrt
-* [Dev Mailing List](https://lists.openwrt.org/mailman/listinfo/openwrt-devel): Send patches
-* [Dev Chat](https://webchat.oftc.net/#openwrt-devel): Channel `#openwrt-devel` on **oftc.net**.
+The next development stage is USB serial support. The target is to connect a USB-to-COM/serial converter to the WT3020 and verify the serial device under OpenWrt before adding industrial communication software and forwarding/monitoring functions.
 
 ## License
 
-OpenWrt is licensed under GPL-2.0
+OpenWrt is licensed under GPL-2.0. Device-support changes in this repository follow the applicable OpenWrt licensing terms.
