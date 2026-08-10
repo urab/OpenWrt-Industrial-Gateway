@@ -57,9 +57,12 @@ jobs:
           CONFIG_PACKAGE_dropbear=y
           CONFIG_PACKAGE_firewall4=y
           CONFIG_PACKAGE_dnsmasq=y
+          CONFIG_PACKAGE_kmod-usb-serial=y
+          CONFIG_PACKAGE_kmod-usb-serial-ftdi=y
+          CONFIG_PACKAGE_ser2net=y
           EOF
           make defconfig
-          grep -E 'CONFIG_TARGET_ramips|CONFIG_TARGET_ramips_mt7620|wt3020-16m|CONFIG_PACKAGE_luci|CONFIG_PACKAGE_uhttpd' .config
+          grep -E 'CONFIG_TARGET_ramips|CONFIG_TARGET_ramips_mt7620|wt3020-16m|CONFIG_PACKAGE_luci|CONFIG_PACKAGE_uhttpd|CONFIG_PACKAGE_kmod-usb-serial|CONFIG_PACKAGE_ser2net' .config
 
       - name: Download sources
         run: make download -j8
