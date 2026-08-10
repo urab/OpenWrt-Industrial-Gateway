@@ -76,9 +76,10 @@ jobs:
           CONFIG_PACKAGE_umbim=y
           CONFIG_PACKAGE_luci-proto-qmi=y
           CONFIG_PACKAGE_luci-proto-mbim=y
+          CONFIG_PACKAGE_usb-modeswitch=y
           EOF
           make defconfig
-          grep -E 'wt3020-16m|CONFIG_PACKAGE_(kmod-usb-serial|ser2net|kmod-usb-net|uqmi|umbim|luci-proto-qmi|luci-proto-mbim)' .config
+          grep -E 'wt3020-16m|CONFIG_PACKAGE_(kmod-usb-serial|ser2net|kmod-usb-net|uqmi|umbim|luci-proto-qmi|luci-proto-mbim|usb-modeswitch)' .config
 
       - name: Download sources
         run: make download -j8
