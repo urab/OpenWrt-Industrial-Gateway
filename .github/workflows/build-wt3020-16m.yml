@@ -44,7 +44,7 @@ jobs:
           ./scripts/feeds update -a
           ./scripts/feeds install -a
 
-      - name: Create WT3020 16M build config
+      - name: Create WT3020 16M universal build config
         run: |
           cat > .config <<'EOF'
           CONFIG_TARGET_ramips=y
@@ -57,12 +57,28 @@ jobs:
           CONFIG_PACKAGE_dropbear=y
           CONFIG_PACKAGE_firewall4=y
           CONFIG_PACKAGE_dnsmasq=y
+
+          # USB serial / industrial COM gateway
           CONFIG_PACKAGE_kmod-usb-serial=y
           CONFIG_PACKAGE_kmod-usb-serial-ftdi=y
+          CONFIG_PACKAGE_kmod-usb-serial-ch341=y
+          CONFIG_PACKAGE_kmod-usb-serial-cp210x=y
+          CONFIG_PACKAGE_kmod-usb-serial-pl2303=y
           CONFIG_PACKAGE_ser2net=y
+
+          # USB networking / cellular modem support
+          CONFIG_PACKAGE_kmod-usb-net=y
+          CONFIG_PACKAGE_kmod-usb-net-cdc-ether=y
+          CONFIG_PACKAGE_kmod-usb-net-rndis=y
+          CONFIG_PACKAGE_kmod-usb-net-qmi-wwan=y
+          CONFIG_PACKAGE_kmod-usb-net-cdc-mbim=y
+          CONFIG_PACKAGE_uqmi=y
+          CONFIG_PACKAGE_umbim=y
+          CONFIG_PACKAGE_luci-proto-qmi=y
+          CONFIG_PACKAGE_luci-proto-mbim=y
           EOF
           make defconfig
-          grep -E 'CONFIG_TARGET_ramips|CONFIG_TARGET_ramips_mt7620|wt3020-16m|CONFIG_PACKAGE_luci|CONFIG_PACKAGE_uhttpd|CONFIG_PACKAGE_kmod-usb-serial|CONFIG_PACKAGE_ser2net' .config
+          grep -E 'wt3020-16m|CONFIG_PACKAGE_(kmod-usb-serial|ser2net|kmod-usb-net|uqmi|umbim|luci-proto-qmi|luci-proto-mbim)' .config
 
       - name: Download sources
         run: make download -j8
@@ -85,7 +101,7 @@ jobs:
       - name: Upload WT3020 firmware
         uses: actions/upload-artifact@v4
         with:
-          name: wt3020-16m-firmware-${{ github.run_number }}
+          name: wt3020-16m-universal-firmware-${{ github.run_number }}
           path: artifacts/
           if-no-files-found: error
           retention-days: 30
