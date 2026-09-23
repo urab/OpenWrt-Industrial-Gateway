@@ -79,6 +79,14 @@ jobs:
           CONFIG_PACKAGE_usb-modeswitch=y
           EOF
           make defconfig
+
+          # Bake tested WT3020 runtime defaults into the image
+          mkdir -p files
+          cp -a files/wt3020-16m/. files/
+          chmod +x files/usr/bin/wan-watchdog.sh
+          chmod +x files/etc/init.d/wan-watchdog
+          chmod +x files/etc/uci-defaults/99-wt3020-cellular
+
           grep -E 'wt3020-16m|CONFIG_PACKAGE_(kmod-usb-serial|ser2net|kmod-usb-net|uqmi|umbim|luci-proto-qmi|luci-proto-mbim|usb-modeswitch)' .config
 
       - name: Download sources
