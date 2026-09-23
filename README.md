@@ -14,7 +14,7 @@ This branch contains work to run OpenWrt on a **Nexx WT3020 upgraded to 16 MB SP
 
 ## Current status
 
-The custom OpenWrt image boots successfully and LuCI is working. LAN is operational and the MT7620 Wi-Fi radio has been tested with a WPA2 client connection.
+The custom OpenWrt image boots successfully and LuCI is working. LAN and Wi-Fi are operational. The tested unit now also supports a USB cellular modem as an automatic backup uplink: Ethernet WAN is preferred, the modem is used when WAN Internet fails, and the watchdog returns traffic to Ethernet when WAN recovers.
 
 The working build produces:
 
@@ -69,7 +69,17 @@ make defconfig
 make -j$(nproc)
 ```
 
-## Next stage — industrial serial gateway
+## Tested Ethernet WAN + USB cellular failover
+
+The tested ALK/ZTE-style USB modem enumerates initially as `19d2:0557` (mass-storage mode). A usbmode data entry switches it automatically to `19d2:0558`, where Linux exposes a CDC Ethernet interface as `eth1`.
+
+Runtime defaults included by the WT3020 16M build create a DHCP interface named `modem` on `eth1` with metric 20, add it to the existing firewall WAN zone (including masquerading), and enable a small procd watchdog. The normal Ethernet WAN remains preferred. After repeated WAN probe failures the Ethernet default route is removed so client traffic uses the modem; when Ethernet Internet is reachable again, the watchdog restores the Ethernet default route.
+
+This setup has been tested across a full router reboot and by physically disconnecting/reconnecting the Ethernet WAN cable. LAN and Wi-Fi clients both use the same failover routing.
+
+Current watchdog probe: `8.8.8.8`. A future improvement is to use multiple independent probe targets and recovery hysteresis.
+
+## Industrial serial gateway
 
 The next development stage is USB serial support. The target is to connect a USB-to-COM/serial converter to the WT3020 and verify the serial device under OpenWrt before adding industrial communication software and forwarding/monitoring functions.
 
