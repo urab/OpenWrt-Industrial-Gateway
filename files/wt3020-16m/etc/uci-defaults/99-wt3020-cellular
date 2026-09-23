@@ -1,0 +1,22 @@
+#!/bin/sh
+
+. /lib/functions.sh
+
+[ "$(board_name)" = "nexx,wt3020-16m" ] || exit 0
+
+uci -q batch <<'EOF'
+set network.modem='interface'
+set network.modem.device='eth1'
+set network.modem.proto='dhcp'
+set network.modem.metric='20'
+EOF
+
+wan_zone="$(uci show firewall | sed -n "s/^firewall\.\(@zone\[[0-9]*\]\)\.name='wan'$/\1/p" | head -n1)"
+[ -n "$wan_zone" ] && uci -q add_list firewall.$wan_zone.network='modem'
+
+uci commit network
+uci commit firewall
+
+/etc/init.d/wan-watchdog enable
+
+exit 0
